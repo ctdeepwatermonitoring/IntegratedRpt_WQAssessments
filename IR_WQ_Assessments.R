@@ -1,3 +1,5 @@
+setwd("P:/Projects/GitHub_Prj/IntegratedRpt_WQAssessments")
+
 library(dataRetrieval)
 library(leaflet)
 
@@ -21,3 +23,4 @@ sites<-bactiCTsites$site_no
 
 #PUll data for sites and dates
 bactiCT<- readNWISqw(siteNumbers=sites,parameterCd=pcd,startDate=start.date,endDate=end.date)
+write.csv(bactiCT,"CT_USGS_BacteriaDataPcd50468_2017_2018.csv")
