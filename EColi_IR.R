@@ -18,7 +18,7 @@ orgs <- c("USGS-CT", "CTVOLMON", "FRWA", "TLGVWQMPROGRAM") #add orgs as we ident
 base_URL <- "https://www.waterqualitydata.us/data/requesttype/search?statecode=US%3A09&organization=orgs&characteristicName=Escherichia%20coli&startDateLo=startdate&startDateHi=enddate&mimeType=csv&zip=no&providers=NWIS&providers=STEWARDS&providers=STORET"
 
 #date portion
-startdate <- "01-01-2021" #change if needed
+startdate <- "01-01-2022" #change if needed
 enddate <- "12-31-2023" #change if needed
 base_URL <- gsub("startdate", startdate, base_URL) 
 base_URL <- gsub("enddate", enddate, base_URL)
@@ -105,7 +105,7 @@ snapped_map
 base_URL <- "https://www.waterqualitydata.us/data/requesttype/search?statecode=US%3A09&organization=orgs&characteristicName=Escherichia%20coli&startDateLo=startdate&startDateHi=enddate&mimeType=csv&zip=no&providers=NWIS&providers=STEWARDS&providers=STORET"
 
 #date portion
-startdate <- "01-01-2021" #change if needed
+startdate <- "01-01-2022" #change if needed
 enddate <- "12-31-2023" #change if needed
 base_URL <- gsub("startdate", startdate, base_URL) 
 base_URL <- gsub("enddate", enddate, base_URL)
@@ -120,6 +120,13 @@ for (i in orgs) {
 }
 
 merged_results <- do.call(rbind, results_list) #all E coli results with the request parameters
+merged_results$ActivityStartDate <- as.POSIXct(merged_results$ActivityStartDate)
+merged_results_2022 <- subset(merged_results, merged_results$ActivityStartDate >= as.POSIXct("2022-05-01") &
+                           merged_results$ActivityStartDate <= as.POSIXct("2022-10-01"))
+merged_results_2023 <- subset(merged_results, merged_results$ActivityStartDate >= as.POSIXct("2023-05-01") &
+                                merged_results$ActivityStartDate <= as.POSIXct("2023-10-01"))
+merged_results <- rbind(merged_results_2022, merged_results_2023) #couldnt do in one step due to filtering logic?
+
 
 #counting number of results per site, useful for checking if a segment should be created
 results_count <- merged_results %>%
@@ -168,4 +175,16 @@ segment_analysis <- result_with_segment %>%
     nContributingOrgs = n_distinct(ActivityConductingOrganizationText) #how many orgs contributed (QA check on whichOrgs)
   )
 
+#add in current assessment status
+riverassessed_2022 <- read.csv("305b_Assessed_2022_River.csv")
+lakeassessed_2022 <- read.csv("305b_Assessed_2022_Lake.csv")
+colnames(riverassessed_2022)[3] <- "ASSESSMENT"
+colnames(lakeassessed_2022)[3] <- "ASSESSMENT"
+riverassessed_2022 <- riverassessed_2022[c("ASSESSMENT", "CT2022_REC_USE_ATTAINMENT")]
+lakeassessed_2022 <- lakeassessed_2022[c("ASSESSMENT", "CT2022_REC_USE_ATTAINMENT")]
+assessed_2022 <- rbind(riverassessed_2022, lakeassessed_2022)
+segment_analysis<- left_join(segment_analysis, assessed_2022, by = "ASSESSMENT") #I want to keep NA segment analysis values
+
 write.csv(segment_analysis, "segment_analysis.csv", row.names = FALSE) #to make final assessment decisions
+
+
