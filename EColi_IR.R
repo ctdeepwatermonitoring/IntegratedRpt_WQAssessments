@@ -181,8 +181,8 @@ riverassessed_2022 <- read.csv("305b_Assessed_2022_River.csv")
 lakeassessed_2022 <- read.csv("305b_Assessed_2022_Lake.csv")
 colnames(riverassessed_2022)[3] <- "ASSESSMENT"
 colnames(lakeassessed_2022)[3] <- "ASSESSMENT"
-riverassessed_2022 <- riverassessed_2022[c("ASSESSMENT", "CT2022_REC_USE_ATTAINMENT")]
-lakeassessed_2022 <- lakeassessed_2022[c("ASSESSMENT", "CT2022_REC_USE_ATTAINMENT")]
+riverassessed_2022 <- riverassessed_2022[c("ASSESSMENT", "ASSESSMENT_UNIT_NAME", "CT2022_REC_USE_ATTAINMENT")]
+lakeassessed_2022 <- lakeassessed_2022[c("ASSESSMENT", "ASSESSMENT_UNIT_NAME", "CT2022_REC_USE_ATTAINMENT")]
 assessed_2022 <- rbind(riverassessed_2022, lakeassessed_2022)
 segment_analysis<- left_join(segment_analysis, assessed_2022, by = "ASSESSMENT") #I want to keep NA segment analysis values
 
