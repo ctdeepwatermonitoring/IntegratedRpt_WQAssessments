@@ -163,6 +163,7 @@ segment_analysis <- result_with_segment %>%
   group_by(ASSESSMENT) %>%
   summarise(
     nSamples = n(), #how many samples contributed to assessment
+    nSites = n_distinct(MonitoringLocationIdentifier), #how many sites per segment
     maxSample = max(ResultMeasureValue, na.rm = TRUE), #max sample in case there is something wild screwing the gmean
     minSample = min(ResultMeasureValue, na.rm = TRUE), #informational
     nOver410 = sum(ResultMeasureValue > 410), #how many samples over 410 MPN?
