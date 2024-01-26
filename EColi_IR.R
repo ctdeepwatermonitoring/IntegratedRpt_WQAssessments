@@ -163,6 +163,7 @@ segment_analysis <- result_with_segment %>%
   group_by(ASSESSMENT) %>%
   summarise(
     nSamples = n(), #how many samples contributed to assessment
+    nSites = n_distinct(MonitoringLocationIdentifier), #how many sites per segment
     maxSample = max(ResultMeasureValue, na.rm = TRUE), #max sample in case there is something wild screwing the gmean
     minSample = min(ResultMeasureValue, na.rm = TRUE), #informational
     nOver410 = sum(ResultMeasureValue > 410), #how many samples over 410 MPN?
@@ -180,10 +181,20 @@ riverassessed_2022 <- read.csv("305b_Assessed_2022_River.csv")
 lakeassessed_2022 <- read.csv("305b_Assessed_2022_Lake.csv")
 colnames(riverassessed_2022)[3] <- "ASSESSMENT"
 colnames(lakeassessed_2022)[3] <- "ASSESSMENT"
-riverassessed_2022 <- riverassessed_2022[c("ASSESSMENT", "CT2022_REC_USE_ATTAINMENT")]
-lakeassessed_2022 <- lakeassessed_2022[c("ASSESSMENT", "CT2022_REC_USE_ATTAINMENT")]
+riverassessed_2022 <- riverassessed_2022[c("ASSESSMENT", "ASSESSMENT_UNIT_NAME", "CT2022_REC_USE_ATTAINMENT")]
+lakeassessed_2022 <- lakeassessed_2022[c("ASSESSMENT", "ASSESSMENT_UNIT_NAME", "CT2022_REC_USE_ATTAINMENT")]
 assessed_2022 <- rbind(riverassessed_2022, lakeassessed_2022)
 segment_analysis<- left_join(segment_analysis, assessed_2022, by = "ASSESSMENT") #I want to keep NA segment analysis values
+
+#add in comments for ATTAINS
+segment_analysis$gmeanSamplesRound <- round(segment_analysis$gmeanSamples, 0) #separate column for the comment info
+segment_analysis$percentExceedRound <- round(segment_analysis$percentExceed, 0) #separate column for the comment info  
+segment_analysis$Comment <- paste("Assessment Change Placeholder. ", "REC Assessment. ",
+                                  segment_analysis$whichOrgs, " data. ", segment_analysis$nSites, " stations, ",
+                                  segment_analysis$nSamples, " samples, ", segment_analysis$nOver576, " exceed, ",
+                                  segment_analysis$percentExceedRound, "% exceedance, ", "Geomean: ", 
+                                  segment_analysis$gmeanSamplesRound, sep = "")
+segment_analysis$Comment
 
 write.csv(segment_analysis, "segment_analysis.csv", row.names = FALSE) #to make final assessment decisions
 
