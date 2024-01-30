@@ -186,16 +186,24 @@ lakeassessed_2022 <- lakeassessed_2022[c("ASSESSMENT", "ASSESSMENT_UNIT_NAME", "
 assessed_2022 <- rbind(riverassessed_2022, lakeassessed_2022)
 segment_analysis<- left_join(segment_analysis, assessed_2022, by = "ASSESSMENT") #I want to keep NA segment analysis values
 
-#add in comments for ATTAINS
-segment_analysis$gmeanSamplesRound <- round(segment_analysis$gmeanSamples, 0) #separate column for the comment info
-segment_analysis$percentExceedRound <- round(segment_analysis$percentExceed, 0) #separate column for the comment info  
-segment_analysis$Comment <- paste("Assessment Change Placeholder. ", "REC Assessment. ",
-                                  segment_analysis$whichOrgs, " data. ", segment_analysis$nSites, " stations, ",
-                                  segment_analysis$nSamples, " samples, ", segment_analysis$nOver576, " exceed, ",
-                                  segment_analysis$percentExceedRound, "% exceedance, ", "Geomean: ", 
-                                  segment_analysis$gmeanSamplesRound, sep = "")
-segment_analysis$Comment
+
 
 write.csv(segment_analysis, "segment_analysis.csv", row.names = FALSE) #to make final assessment decisions
 
+#final assessment
+final <- read.csv("2024_REC_final.csv")
+translate <- read.csv("recprop_translation.csv")
+final <- left_join(final, translate, by = "X2024.REC.PROP")
+final$enoughSamples <- ifelse(final$nSamples < 8, ". Sample Count below criteria, assessment remains the same until further samples collected.", "")
 
+#add in comments for ATTAINS
+final$gmeanSamplesRound <- round(final$gmeanSamples, 0) #separate column for the comment info
+final$percentExceedRound <- round(final$percentExceed, 0) #separate column for the comment info  
+final$Comment <- paste(final$statement, " REC Assessment. ",
+                                  final$whichOrgs, " data. ", final$nSites, " stations, ",
+                                  final$nSamples, " samples, ", final$nOver576, " exceed, ",
+                                  final$percentExceedRound, "% exceedance, ", "Geomean: ", 
+                                  final$gmeanSamplesRound, final$enoughSamples, sep = "")
+final$Comment
+
+write.csv(final, "2024_rec_assessment_final.csv", row.names = FALSE)
